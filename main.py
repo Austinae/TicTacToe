@@ -1,4 +1,6 @@
 import sys, pygame
+from test import *
+import random
 
 pygame.init()
 
@@ -134,11 +136,9 @@ def buttonDownLogic(board, player, circles, crosses, player1score, player2score,
     x, y = pygame.mouse.get_pos()
     w = 0
     z = 0
-
     if x // int(thirdwidth) == 0:
         w = 0
         x = 1
-
     else:
         w = x // int(thirdwidth)
         x = (x // int(thirdwidth)) * 2 + 1
@@ -146,7 +146,6 @@ def buttonDownLogic(board, player, circles, crosses, player1score, player2score,
     if y // int(thirdheight) == 0:
         z = 0
         y = 1
-
     else:
         z = y // int(thirdheight)
         y = (y // int(thirdheight)) * 2 + 1
@@ -158,7 +157,6 @@ def buttonDownLogic(board, player, circles, crosses, player1score, player2score,
             crosses.append(
                 Cross(screen, black, w * int(width / 3) + cross_offset, z * int(height / 3) + cross_offset, thickness))
         board.move(w, z, player)
-        print(board.board)
         if board.isWinner():
             print(player, "is the winner")
             if player == player1:
@@ -180,16 +178,46 @@ def buttonDownLogic(board, player, circles, crosses, player1score, player2score,
             player = player1
     return board, player, circles, crosses, player1score, player2score, scoretext
 
-while gameRunning:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT: sys.exit()
 
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            board, player, circles, crosses, player1score, player2score, scoretext = buttonDownLogic(board, player, circles, crosses, player1score, player2score, scoretext)
+if __name__ == '__main__':
+    while gameRunning:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
 
-    screen.fill(white)
-    drawObjects(circles, crosses)
-    screen.blit(scoretext, (0, 0))
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if player == player1:
+                    board, player, circles, crosses, player1score, player2score, scoretext = buttonDownLogic(board, player, circles, crosses, player1score, player2score, scoretext)
 
+        # random bot moves
+        if player == player2:
+            options = []
+            for square in board.board:
+                if board.board[square] is None:
+                    options.append(square)
+            botMove = random.choice(options)
+            board.move(botMove[0], botMove[1], player)
+            crosses.append(
+                Cross(screen, black, botMove[0] * int(width / 3) + cross_offset, botMove[1] * int(height / 3) + cross_offset, thickness))
+            if board.isWinner():
+                print(player, "is the winner")
+                if player == player1:
+                    player1score += 1
+                else:
+                    player2score += 1
+                scoretext = font.render("P1 (O):" + str(player1score) + "   P2 (X):" + str(player2score), 1,
+                                        black)
+                board.empty()
+                circles = []
+                crosses = []
+            elif None not in board.board.values():
+                print("It is a draw")
+                board.empty()
+                circles = []
+                crosses = []
+            player = player1
 
-    pygame.display.flip()
+        screen.fill(white)
+        drawObjects(circles, crosses)
+        screen.blit(scoretext, (0, 0))
+
+        pygame.display.flip()
